@@ -1,3 +1,9 @@
+# Group 10 Analytics Class Project
+Our client, Kirk Bogard, is seeking relevant data on the job market and salary trends to better guide the farmer school of business. The question we are answering for Kirk is: What are the macro placement and salary trends we are seeing over the past three years? Our information will aid in providing companies with relevant infomation on why they should recruit from FSB as well as targeting companies that are good fits for students. The information provided will help students in understanding the current job market and how they can get placed with a company.
+
+We will perform a time series analysis on the data to better understand the relationship between placement and salary trends for FSB overall and by major.
+
+
 # Overview of the Repository
 
 The purpose of this repository is to interact with GitHub to access the files for our second project in ISA 616.  Below, I also include details about GitHub to help you in working in this environment.
