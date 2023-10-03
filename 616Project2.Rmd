@@ -1,29 +1,23 @@
 ------------------------------------------------------------------------
-
+title: "616Project2"
+author: "Riley Feltner and Rj Menter"
+date:"2023-10-03"
+output: html_document
 ------------------------------------------------------------------------
+---
+title: "616Project2"
+author: "Riley Feltner and Rj Menter"
+date:"2023-10-03"
+output: html_document
+---
 
-![](images/poster Value proposition canvas simple white.png)\-\-- title: "616Project2" author: "Rj Menter & Riley Feltner" date: "2023-10-01" output: html_document \-\--
+![](images/poster%20Value%20proposition%20canvas%20simple%20white.png)\-\-- title: "616Project2" author: "Rj Menter & Riley Feltner" date: "2023-10-01" output: html_document \-\--
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r}
+fsb_data <- readRDS("FSB_BI_Survey_2019_2021.rds")
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
