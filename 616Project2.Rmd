@@ -14,3 +14,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 fsb_data <- readRDS("FSB_BI_Survey_2019_2021.rds")
 ```
+
+```{r}
+# Find and print rows with null values in any column
+null_rows <- fsb_data[!complete.cases(fsb_data), ]
+print(null_rows)
+
+```
+```{r}
+sum_of_na_by_variable <- colSums(is.na(fsb_data), na.rm = TRUE)
+print(sum_of_na_by_variable)
+```
+
