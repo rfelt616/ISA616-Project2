@@ -1,9 +1,3 @@
-------------------------------------------------------------------------
-title: "616Project2"
-author: "Riley Feltner and Rj Menter"
-date:"2023-10-03"
-output: html_document
-------------------------------------------------------------------------
 ---
 title: "616Project2"
 author: "Riley Feltner and Rj Menter"
@@ -11,7 +5,7 @@ date:"2023-10-03"
 output: html_document
 ---
 
-![](images/poster%20Value%20proposition%20canvas%20simple%20white.png)\-\-- title: "616Project2" author: "Rj Menter & Riley Feltner" date: "2023-10-01" output: html_document \-\--
+![](poster Value proposition canvas simple white.png)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -20,4 +14,3 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 fsb_data <- readRDS("FSB_BI_Survey_2019_2021.rds")
 ```
-
