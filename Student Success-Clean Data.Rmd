@@ -1,0 +1,252 @@
+---
+title: "Clean Data and Business Value Proposition"
+author: "Riley Feltner and Rj Menter"
+date: "2023-10-03"
+output: html_document
+---
+
+
+# Business Value Proposition Graphic
+
+![](poster%20Value%20proposition%20canvas%20simple%20white.png)
+
+\-\--
+
+# **Group 10 Analytics Class Project**
+
+Our client, Kirk Bogard, is seeking relevant data on the job market and salary trends to better guide the farmer school of business. The question we are answering for Kirk is: What are the macro placement and salary trends we are seeing over the past three years? Our information will aid in providing companies with relevant information on why they should recruit from FSB as well as targeting companies that are good fits for students. The information provided will help students in understanding the current job market and how they can get placed with a company.
+
+We will perform an analysis on the data to better understand the relationship between placement and salary trends for FSB overall and by major over time, using a variety of tools - such as bar charts, interactive tables, and some visualizations to provide different perspectives and to answer our clients question in a meaningful capacity.
+
+## Data History
+
+Annually, the FSB conducts a senior survey of graduates to learn of their employment status. In addition, information is verified using LinkedIn and employer survey information. The data you are provided ('FSB_BI_Survey_2019_2021.rds') contains data on graduates for 2019, 2020, and 2021. The data are merged from two sources: the senior survey, and data from the Miami University database.
+
+The data are anonymized, however it is possible that if you look hard enough, you can identify students. You are bound, ethically not to do so.
+
+## Data Dictionary
+
+Attached here is the data dictionary which defines all variables from the data set.
+
+nmajor: numeric,derived, the number of majors
+
+major1: text, OBIEE, first major
+
+major 2: text, OBIEE, second major
+
+BBRJ: binary, OBIEE, an attribute of a student, but we do not know what this stands for
+
+Business Direct Admit: binary, OBIEE, a direct admit to FSB as a first year
+
+Combined Cacc and Masters: binary, OBIEE, combined degree student
+
+Dean's List: binary, OBIEE, achieve dean's list status at least once
+
+First Generation College Stdnt: binary, OBIEE, first generation student status
+
+FSB Scholars: binary, OBIEE, FSB scholars program
+
+Honors Program: binary, OBIEE, member of University honors program
+
+President's list: binary, OBIEE, achieved president's list at least once
+
+Study Abroud Courtesy Account: binary, OBIEE, do not know meaning
+
+Transfer Work: binary, OBIEE, do not know exact meaning
+
+Cum Laude: binary, OBIEE, graduated Cum Laude
+
+Magna Cum Laude: binary, OBIEE, graduated Magna Cum Laude
+
+Summa Cum Laude: binary, OBIEE, graduated Summa Cum Laude
+
+University Honors: binary, OBIEE, graduated with University Honors
+
+University Honors w/Distinction: binary, OBIEE, graduated with University Honors with Distinction
+
+minor1: text, OBIEE, first listed minor
+
+minor2: text, OBIEE, second listed minor
+
+IPEDS.Race.Ethnicity: text, OBIEE, race/ethnicity
+
+Gender: text, OBIEE, sex
+
+GPA.Range: text, OBIEE, GPA within a .5 range
+
+Term.Code: numberic, OBIEE, First four digits are the physcal year (beginning in July, e.g. July 2020 is FY 2021). Last two digits is the term (10=fall, 15=winter, 20=spring, 30=summer).
+
+Year.x: text, derived, first four digits of Term.Code stored as a character variable
+
+latin_honors: text, survey, latin honors designation
+
+survey_city: text, survey, student reported city in which their job is located
+
+survey_company: text, survey, student reported company in which they accepted a job
+
+survey_deptfunc: text, survey, student reported job function
+
+survey_gradprogram: text, survey, student reported graduate program they will be attending
+
+survey_gradschool: text, survey, stuent reported graduate school they will be attending
+
+survey_internfour: text, survey, student reported fourth internship they held during college
+
+survey_internthree: text, survey, student reported third internship they held during college
+
+survey_interntwo: text, survey, student reported second internship they held during college
+
+survey_internone: text, survey, student reported first internship they held during college
+
+Survey_internships: text, survey, Student reported number of internships they held during college
+
+survey_offers: text, survey, student reported number of offers for full time employment received
+
+survey_plans: text, survey, student reported plans after graduation
+
+survey_pref_field: text, survey, student reported whether working in preferred field
+
+survey_pref_loc: text, survey, student reported whether working in preferred location
+
+survey_salary: numeric, survey, student reported salary
+
+survey_state: text, survey, student reported state in which job is located
+
+### Data Exploration
+
+This first section sets up our knit, our dataframe, and identifies null rows in our data set. We made a secondary dataframe called null rows that can be used for comparison. We also identified many variables with null values: survey_city, survey_company, survey_deptfunc, survey_gradprogram, survey_gradschool, survey_internfour, survey_internone, survey_internships, survey_internthree, survey_interntwo, survey_offers, survey_plans, survey_pref_field, survey_pref_loc, survey_salary, survey_state.
+
+The rest of the variables had the complete sample size of 3235,which was our total number of observations.
+
+\-\--
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+fsb_data <- readRDS("FSB_BI_Survey_2019_2021.rds")
+
+data_summary <- summary(fsb_data)
+
+sample_sizes <- sapply(fsb_data, function(x) sum(!is.na(x)))
+print("Sample Sizes:")
+print(sample_sizes)
+
+total_observations <- nrow(fsb_data)
+print(paste("Total Number of Observations:", total_observations))
+```
+
+```{r}
+null_rows <- fsb_data[!complete.cases(fsb_data), ]
+```
+
+```{r}
+sum_of_na_by_variable <- colSums(is.na(fsb_data), na.rm = TRUE)
+print(sum_of_na_by_variable)
+```
+
+\-\--
+
+Here is the beginning of our data cleaning analysis, we began by looking at the data dictionary and identified Survey Offers as a variable that should be changed to a numeric variable, and needed to have its values tweaked because the survey responses made the variable hard to analyze otherwise. We identified Survey Offers as a variable that should be changed to numeric, from a categorical type. The following code shows how we identified the unique values that we wanted to change as well as how we resolved non-responses as 0 job offers for that survey response.
+
+\-\--
+
+```{r}
+
+unique(fsb_data$survey_offers)
+```
+
+```{r}
+# Define a mapping function to change values to NA or a number
+map_survey_offers <- function(value) {
+  if (is.na(value) || tolower(value) == "na" || value == "multiple" || grepl("\\+", value)) {
+    return(NA)
+  } else {
+    numeric_value <- as.numeric(value)
+    if (numeric_value >= 0 && numeric_value <= 10) {
+      return(numeric_value)
+    } else {
+      return(NA)
+    }
+  }
+}
+
+# Apply the mapping function to the survey_offers variable
+fsb_data$survey_offers <- sapply(fsb_data$survey_offers, map_survey_offers)
+
+#Replace NA values with 0 in survey_offers
+fsb_data$survey_offers[is.na(fsb_data$survey_offers)] <- 0
+
+```
+
+\-\--
+
+To further reduce our dataset we created two dummy variables: has_internship and has_multiple_internships. We then removed the survey_internships, survey_internone, survey_interntwo, survey_internthree, survey_internfour as they are now adding too much complexity to our potential model and are unneeded with the new variables that we have created to represent them.
+
+Below are the steps we took to achieve this: Create a new dummy variable indicating internship presence Create a new dummy variable indicating multiple internships presence Remove the original survey_internships variable because we no longer need it, we have the data from it reflected in two dummy variables. We replaced any of the empty categorical variables from the survey with the text "None" to indicate that the student did not answer.
+
+\-\--
+
+```{r}
+fsb_data$has_internship <- ifelse(is.na(fsb_data$survey_internships) | fsb_data$survey_internships == "0" | fsb_data$survey_internships == "N/A" | fsb_data$survey_internships == "RPT", 0, 1)
+
+fsb_data$has_multiple_internships <- ifelse(is.na(fsb_data$survey_internships) | fsb_data$survey_internships == "0" | fsb_data$survey_internships == "1" | fsb_data$survey_internships == "N/A" | fsb_data$survey_internships == "RPT", 0, 1)
+
+variables_to_drop <- c("survey_internships", "survey_internone", "survey_interntwo", "survey_internthree", "survey_internfour")
+fsb_data <- fsb_data[, !(names(fsb_data) %in% variables_to_drop)]
+
+```
+
+```{r}
+fsb_data$survey_deptfunc <- ifelse(is.na(fsb_data$survey_deptfunc), "None", fsb_data$survey_deptfunc)
+fsb_data$survey_plans <- ifelse(is.na(fsb_data$survey_plans), "None", fsb_data$survey_plans)
+fsb_data$survey_pref_loc <- ifelse(is.na(fsb_data$survey_pref_loc), "None", fsb_data$survey_pref_loc)
+fsb_data$survey_pref_field <- ifelse(is.na(fsb_data$survey_pref_field), "None", fsb_data$survey_pref_field)
+
+fsb_data$survey_city <- ifelse(is.na(fsb_data$survey_city), "None", fsb_data$survey_city)
+fsb_data$survey_company <- ifelse(is.na(fsb_data$survey_company), "None", fsb_data$survey_company)
+fsb_data$survey_gradprogram <- ifelse(is.na(fsb_data$survey_gradprogram), "None", fsb_data$survey_gradprogram)
+fsb_data$survey_gradschool <- ifelse(is.na(fsb_data$survey_gradschool), "None", fsb_data$survey_gradschool)
+fsb_data$survey_state <- ifelse(is.na(fsb_data$survey_state), "None", fsb_data$survey_state)
+
+```
+
+\-\--
+
+We are making the educated assumption that those who did not report a salary likely did not have a job. Thus, we are imputing the null values with 0 for the numeric field survey_salary.
+
+\-\--
+
+```{r}
+# Observe unique values, and impute null to 0.
+unique(fsb_data$survey_salary)
+
+fsb_data$survey_salary[is.na(fsb_data$survey_salary)] <- 0
+
+```
+
+\-\--
+
+We ran the same code that identified our nulls from before, and found that we no longer had any - and had reduced the complexity of the model by removing some unnecessary variables.
+
+\-\--
+
+```{r}
+sum_of_na_by_variable <- colSums(is.na(fsb_data), na.rm = TRUE)
+print(sum_of_na_by_variable)
+```
+
+\-\--
+
+Computing Environment - Everything was completed from an R-Project with a working directory set around it. Attached will be a zip folder that contains everything needed to reproduce the work seen here.
+
+\-\--
+
+```{r}
+session_info <- capture.output(sessionInfo())
+
+writeLines(session_info, "computing_environment.txt")
+
+datacleaned <- write.csv(fsb_data, "datacleaned.csv")
+```

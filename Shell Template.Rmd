@@ -1,0 +1,100 @@
+---
+title: "FSB Placement Data Insights"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+#runtime: shiny
+---
+
+```{r setup, include=FALSE,echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=FALSE,warning=FALSE)
+
+#package intialization
+if(require(pacman)==FALSE) install.packages("pacman")
+pacman::p_load(tidyverse, #for data manipulation
+               plotly, #for interactive plots
+               flexdashboard, #to make a dashboard
+               fontawesome, #for icons
+               DT #for better tables
+               )
+
+#read in data
+datacleaned <- read.csv('datacleaned.csv')
+```
+
+
+# Placement Over Time {data-orientation="columns"}
+
+```{r}
+
+```
+
+
+### Question to Answer {data-height=30%}
+
+```{r, echo = TRUE}
+# What are the macro placement and salary trends we are seeing over the past three years?
+```
+
+### Insights and References {data-height=150%}
+
+```{r,echo=FALSE}
+
+```
+
+
+# Regression Analysis {data-orientation="rows"}
+
+```{r}
+
+```
+
+
+### Salary by Year {data-width=50%}
+
+```{r, echo = FALSE}
+
+```
+
+### Placement by Year {data-width=50%}
+
+```{r,echo=FALSE}
+
+```
+
+
+# Interactive Tables {data-orientation="columns"}
+
+```{r}
+
+```
+
+
+### Placement Percent Change by Year {data-height=50%}
+
+```{r, echo = FALSE}
+
+```
+
+### Salary Percent Change by Year {data-height=50%}
+
+```{r,echo=FALSE}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

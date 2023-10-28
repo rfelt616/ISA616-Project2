@@ -1,0 +1,249 @@
+---
+title: "FSB Placement Data Insights"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+#runtime: shiny
+---
+
+```{r setup, include=FALSE,echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=FALSE,warning=FALSE)
+
+#package intialization
+if(require(pacman)==FALSE) install.packages("pacman")
+pacman::p_load(tidyverse, #for data manipulation
+               plotly, #for interactive plots
+               flexdashboard, #to make a dashboard
+               fontawesome, #for icons
+               DT #for better tables
+               )
+
+#read in data
+datacleaned <- read.csv('datacleaned.csv')
+```
+
+# Overview {data-orientation="columns"}
+
+```{r}
+
+```
+
+### Question to Answer {data-height=30%}
+What are the macro placement and salary trends we are seeing over the past three years?
+ 
+  
+Our Task is to generate  multiple visualizes that showcase how well FSB is preparing its students to begin their careers, as well as what majors are most likely to receive offers and/or high pay relative to other majors within FSB.
+
+
+### Insights and References {data-height="150%"}
+
+**1. ** Dropping Majors with Insufficient Data:
+During the analysis, it was identified that certain majors lacked sufficient relevant information necessary for making accurate assumptions about salary and placement rates. For these specific majors, namely General Business Management and Operations as well as Interdisciplinary Business Management, the dataset did not provide adequate data points. In such cases, it is crucial to have a substantial amount of data to draw meaningful conclusions. Therefore, these majors were excluded from the analysis to maintain the integrity and accuracy of the overall findings.
+
+**2. ** Expected Drop in 2020:
+In 2020, there was a universal decline in placement rates across all relevant majors. This dip in placement rates was anticipated and can be attributed to the widespread economic challenges caused by external factors such as the global pandemic. Various industries experienced disruptions during this period, which naturally affected employment opportunities and placement rates for graduates across different majors.
+
+**3. ** Concerning Trends in Placement Rates in 2021:
+A notable and concerning observation emerged during the analysis of placement rates. Several majors, including Business Analytics, Entrepreneurship, Finance, Information Systems, Management and Leadership, and Marketing did not rebound to their pre-2020 placement rates in 2021. Despite the general expectation of a recovery in employment opportunities after the initial impact of the pandemic, these specific majors did not return to their baseline placement rates. This trend raises important questions and highlights the need for further investigation to understand the underlying factors contributing to this phenomenon.
+
+**4. ** Exceptional Majors:
+It's noteworthy that Accountancy, Business Economics, Human Capital and Leadership, and Supply Chain and Operations Management did not follow the same trend as the other majors mentioned above. Understanding why these majors didn't experience the same decline in placement rates and whether there are unique factors contributing to this exception could provide valuable insights into the dynamics of the job market for graduates in these specialized fields.
+
+In summary, the decision to drop majors with insufficient data was essential for the integrity of the analysis. Additionally, the observed trends in placement rates, especially the failure of certain majors to recover to their pre-2020 levels, emphasize the importance of conducting further in-depth investigations to identify the specific factors influencing these trends. Such insights are crucial for Miami as an institution and its career services to adapt strategies and support systems to better prepare students for the evolving job market challenges.
+ 
+
+
+# Visualizations {data-orientation="rows"}
+
+```{r}
+
+```
+
+### Salary by Year {data-width="50%"}
+
+```{r, echo = FALSE}
+library(ggplot2)
+library(dplyr)
+
+# Combine "Information Systems" and "Business Analytics" into "ISA"
+datacleaned1 <- datacleaned %>%
+  mutate(major1 = ifelse(major1 %in% c("Information Systems", "Business Analytics"), "ISA", major1))
+
+# Calculate the count of each major
+value_counts <- datacleaned1 %>%
+  group_by(major1) %>%
+  summarize(count = n())
+
+# Sort the majors by count and select the top 5
+selected_major1_values <- value_counts %>%
+  arrange(desc(count)) %>%
+  filter(row_number() <= 5)
+
+# Non-zero salaries
+datacleaned2 <- filter(datacleaned1, survey_salary > 0)
+
+# Define unique values and colors
+unique_values <- c("ISA", "Accountancy", "Finance", "Marketing", "Supply Chain & Operations Mgmt")
+
+colors <- c("red", "blue", "green", "purple", "orange")
+
+color_palette <- setNames(colors, unique_values)
+
+average_salaries <- datacleaned2 %>%
+  filter(major1 %in% selected_major1_values$major1) %>%
+  group_by(year.x, major1) %>%
+  summarize(avg_salary = mean(survey_salary))
+
+# Calculate the overall average for each year
+overall_average <- datacleaned2 %>%
+  group_by(year.x) %>%
+  summarize(avg_salary_all_majors = mean(survey_salary))
+
+# Combine overall average with the existing data
+average_salaries <- average_salaries %>%
+  bind_rows(overall_average)
+
+average_salaries$major1 <- ifelse(is.na(average_salaries$major1), "All Majors", average_salaries$major1)
+average_salaries$avg_salary[is.na(average_salaries$avg_salary)] <- average_salaries$avg_salary_all_majors[is.na(average_salaries$avg_salary)]
+average_salaries <- average_salaries[,-c(4)]
+# Define unique values and colors
+unique_values <- c("ISA", "Accountancy", "Finance", "Marketing", "Supply Chain & Operations Mgmt", "All Majors")
+
+colors <- c("red", "blue", "green", "purple", "orange", "gray")
+
+color_palette <- setNames(colors, unique_values)
+
+# Create a bar chart for the average survey salaries by year
+# Order the major1 variable by avg_salary
+average_salaries$major1 <- reorder(average_salaries$major1, -average_salaries$avg_salary)
+
+# Create the bar chart with the major1 variable ordered by avg_salary
+average_salaries %>%
+  ggplot(aes(x = year.x, y = avg_salary, fill = major1)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(x = "Year", y = "Average Survey Salary", title = "Average Survey Salaries by Major", subtitle = "Top 5 Most Frequent Majors + All Majors") +
+  scale_x_continuous(breaks = c(2019, 2020, 2021)) +
+  scale_fill_manual(values = color_palette, name = "Major") + 
+  theme_minimal()
+
+```
+
+### Placement by Year {data-width="50%"}
+
+```{r,echo=FALSE}
+datacleaned1$placement <- ifelse(datacleaned1$survey_offers == 0, 0, 1)
+
+# Calculate the overall average placement for each year
+overall_average_placement <- datacleaned1 %>%
+  group_by(year.x) %>%
+  summarize(avg_placement_all_majors = mean(placement))
+
+# Combine overall average placement with the existing data
+average_placement <- datacleaned1 %>%
+  filter(major1 %in% selected_major1_values$major1) %>%
+  group_by(year.x, major1) %>%
+  summarize(avg_placement = mean(placement)) %>%
+  bind_rows(overall_average_placement)
+
+average_placement$major1 <- ifelse(is.na(average_placement$major1), "All Majors", average_placement$major1)
+average_placement$avg_placement[is.na(average_placement$avg_placement)] <- average_placement$avg_placement_all_majors[is.na(average_placement$avg_placement)]
+average_placement <- average_placement[, -4]
+
+# Define unique values and colors
+unique_values_placement <- c("ISA", "Accountancy", "Finance", "Marketing", "Supply Chain & Operations Mgmt", "All Majors")
+
+colors_placement <- c("red", "blue", "green", "purple", "orange", "gray")
+
+color_palette_placement <- setNames(colors_placement, unique_values_placement)
+
+# Order the major1 variable by avg_placement
+average_placement$major1 <- reorder(average_placement$major1, -average_placement$avg_placement)
+
+# Create the bar chart with the major1 variable ordered by avg_placement
+average_placement %>%
+  ggplot(aes(x = year.x, y = avg_placement, fill = major1)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.7) +
+  labs(x = "Year", y = "Average Placement", title = "Average Placement by Major", subtitle = "Top 5 Most Frequent Majors + All Majors") +
+  scale_x_continuous(breaks = c(2019, 2020, 2021)) +
+  scale_fill_manual(values = color_palette_placement, name = "Major") +
+  theme_minimal()
+```
+
+# Percent Change (Placement and Salary) Tables {data-orientation="columns"}
+
+```{r}
+
+```
+
+### Placement and Salary Percent Change by Year {data-height="100%"}
+
+```{r, echo = FALSE}
+library(scales)
+datacleaned$placement <- ifelse(datacleaned$survey_offers == 0, 0, 1)
+
+tabledf <- datacleaned %>%
+  group_by(major1, year.x) %>%
+  summarize(placement = mean(placement, na.rm = TRUE)) %>%
+  pivot_wider(names_from = year.x, values_from = placement) %>%
+  mutate(`% Change 2019 to 2020` = ifelse(!is.na(`2019`) & !is.na(`2020`), 
+                                          paste(round(((`2020` - `2019`) / `2019`) * 100, 2), "%"), NA),
+         `% Change 2020 to 2021` = ifelse(!is.na(`2020`) & !is.na(`2021`), 
+                                          paste(round(((`2021` - `2020`) / `2020`) * 100, 2), "%"), NA))
+
+tabledf <- tabledf %>%
+  mutate(
+    `2019` = ifelse(grepl("NA%", `2019`), "NA", paste0(round(`2019` * 100, 2), "%")),
+    `2020` = ifelse(grepl("NA%", `2020`), "NA", paste0(round(`2020` * 100, 2), "%")),
+    `2021` = ifelse(grepl("NA%", `2021`), "NA", paste0(round(`2021` * 100, 2), "%")),
+    `% Change 2019 to 2020` = ifelse(grepl("NA%", `% Change 2019 to 2020`), "NA", `% Change 2019 to 2020`),
+    `% Change 2020 to 2021` = ifelse(grepl("NA%", `% Change 2020 to 2021`), "NA", `% Change 2020 to 2021`)
+  )
+
+tabledf <- tabledf[-c(11, 6),] ## dropped general business management and operations
+tabledf <- tabledf[-c(8),] ## dropped interdisciplinary business management
+
+datacleaned4 <- filter(datacleaned, survey_salary > 0)
+
+datacleaned4 <- datacleaned4 %>%
+  group_by(year.x, major1) %>%
+  summarize(avg_salary = mean(survey_salary))
+
+
+datacleaned4 <- datacleaned4 %>%
+  pivot_wider(names_from = year.x, values_from = avg_salary) %>%
+  mutate(`Change 2019 to 2020` = (`2020` - `2019`) / `2019`,
+         `Change 2020 to 2021` = (`2021` - `2020`) / `2020`) %>%
+  mutate(
+    `Change 2019 to 2020` = scales::percent(`Change 2019 to 2020`, scale = 100, accuracy = 0.01),
+    `Change 2020 to 2021` = scales::percent(`Change 2020 to 2021`, scale = 100, accuracy = 0.01)
+  ) %>%
+  mutate_at(vars(`2019`, `2020`, `2021`), ~ round(., 2))
+
+
+new_df <- cbind(tabledf, datacleaned4)
+
+new_df <- new_df[,-c(7)]
+
+colnames(new_df) <- c(
+  "Major",
+  "2019 Placement",
+  "2020 Placement",
+  "2021 Placement",
+  "Placement % Change 2019 to 2020",
+  "Placement % Change 2020 to 2021",
+  "2019 Salary",
+  "2020 Salary",
+  "2021 Salary",
+  "Salary % Change 2019 to 2020",
+  "Salary % Change 2020 to 2021"
+)
+
+datatable(new_df, rownames = F, extensions = "Buttons", options = list(dom= 'Bfrtip',
+                                                                       buttons = c('copy', 'csv', 'excel')),
+          filter = list(position = "buttom",
+                        clear = F, plain = T))
+
+```
+
+
+
